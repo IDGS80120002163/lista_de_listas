@@ -8,11 +8,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Lonches Music',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Agrupaciones con canciones mías'),
     );
   }
 }
@@ -26,32 +26,39 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Map<String, List<String>>> mainList = [
-    {'Lista 1': ['Lista 1', 'Lista 2']},
-    {'Lista 2': ['Lista 1', 'Lista 2']},
-    {'Lista 3': ['Lista 1', 'Lista 2']}
-  ];
+  final List<Map<String, List<String>>> mainList = [];
 
-  void _addNewList() {
+  void _agregarNuevaAgrupacion() {
     final TextEditingController controller = TextEditingController();
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Add New List"),
+          title: Text("Agregar Nueva Agrupación"),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(labelText: 'List Name'),
+            decoration: InputDecoration(labelText: 'Nombre de la agrupación'),
           ),
           actions: [
             ElevatedButton(
               onPressed: () {
-                setState(() {
-                  mainList.add({controller.text: []});
-                });
-                Navigator.of(context).pop();
+                String inputText = controller.text.trim();
+                if (inputText.isNotEmpty &&
+                    inputText.contains(RegExp(r'[a-zA-Z]'))) {
+                  setState(() {
+                    mainList.add({inputText: []});
+                  });
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          "El nombre de la agrupación debe contener al menos una letra."),
+                    ),
+                  );
+                }
               },
-              child: Text("Add"),
+              child: Text("Agregar"),
             ),
           ],
         );
@@ -59,39 +66,43 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _editList(int index, String newKey) {
-    setState(() {
-      var items = mainList[index].values.first;
-      mainList[index] = {newKey: items};
-    });
+  void _modificarAgrupacion(int id, String newKey) {
+    if (newKey.isEmpty || !RegExp(r'[a-zA-Z]').hasMatch(newKey)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'El nuevo nombre de la agrupación debe contener al menos una letra.')),
+      );
+    } else {
+      setState(() {
+        var items = mainList[id].values.first;
+        mainList[id] = {newKey: items};
+      });
+    }
   }
 
-  void _deleteList(int index) {
-    setState(() {
-      mainList.removeAt(index);
-    });
-  }
-
-  void _addItemToList(int index) {
-    final TextEditingController controller = TextEditingController();
+  void _eliminarAgrupacion(int id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Add New Item"),
-          content: TextField(
-            controller: controller,
-            decoration: InputDecoration(labelText: 'Item'),
-          ),
+          title: Text("Eliminar Agrupación"),
+          content: Text("¿Estás seguro que deseas eliminar esta agrupación?"),
           actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: Text("Cancelar"),
+            ),
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  mainList[index].values.first.add(controller.text);
+                  mainList.removeAt(id);
                 });
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Cerrar el diálogo
               },
-              child: Text("Add"),
+              child: Text("Eliminar"),
             ),
           ],
         );
@@ -99,16 +110,83 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _editItemInList(int index, int itemIndex, String newItem) {
-    setState(() {
-      mainList[index].values.first[itemIndex] = newItem;
-    });
+  void _agregarCancion(int id) {
+    final TextEditingController controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Agregar nueva canción"),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(labelText: 'Nombre de la canción'),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.isEmpty ||
+                    !RegExp(r'[a-zA-Z]').hasMatch(controller.text)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'El nombre de la canción debe contener al menos una letra.')),
+                  );
+                } else {
+                  setState(() {
+                    mainList[id].values.first.add(controller.text);
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text("Agregar"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  void _deleteItemFromList(int index, int itemIndex) {
-    setState(() {
-      mainList[index].values.first.removeAt(itemIndex);
-    });
+  void _editarCancion(int id, int itemid, String nuevoNombre) {
+    if (nuevoNombre.isEmpty || !RegExp(r'[a-zA-Z]').hasMatch(nuevoNombre)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'El nuevo nombre de la canción debe contener al menos una letra.')),
+      );
+    } else {
+      setState(() {
+        mainList[id].values.first[itemid] = nuevoNombre;
+      });
+    }
+  }
+
+  void _eliminarCancion(int id, int itemid) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Eliminar Canción"),
+          content: Text("¿Estás seguro que deseas eliminar esta canción?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: Text("Cancelar"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  mainList[id].values.first.removeAt(itemid);
+                });
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: Text("Eliminar"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -116,18 +194,20 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: _addNewList,
-          ),
-        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(8),
-        itemCount: mainList.length,
-        itemBuilder: (BuildContext context, int index) {
-          String key = mainList[index].keys.first;
+        itemCount: mainList.length + 1,
+        itemBuilder: (BuildContext context, int id) {
+          if (id == mainList.length) {
+            return Center(
+              child: ElevatedButton(
+                child: Text("Agregar Nueva Agrupación"),
+                onPressed: _agregarNuevaAgrupacion,
+              ),
+            );
+          }
+          String key = mainList[id].keys.first;
           return Card(
             child: ExpansionTile(
               title: Row(
@@ -139,13 +219,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       IconButton(
                         icon: Icon(Icons.edit),
                         onPressed: () {
-                          _showEditDialog(context, index);
+                          _showEditMainListDialog(context, id);
                         },
                       ),
                       IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: () {
-                          _deleteList(index);
+                          _eliminarAgrupacion(id);
                         },
                       ),
                     ],
@@ -153,8 +233,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               children: [
-                ...mainList[index][key]!.map((item) {
-                  int itemIndex = mainList[index][key]!.indexOf(item);
+                ...mainList[id][key]!.map((item) {
+                  int itemid = mainList[id][key]!.indexOf(item);
                   return ListTile(
                     title: Text(item),
                     trailing: Row(
@@ -163,13 +243,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         IconButton(
                           icon: Icon(Icons.edit),
                           onPressed: () {
-                            _showEditItemDialog(context, index, itemIndex);
+                            _showEditSublistDialog(context, id, itemid);
                           },
                         ),
                         IconButton(
                           icon: Icon(Icons.delete),
                           onPressed: () {
-                            _deleteItemFromList(index, itemIndex);
+                            _eliminarCancion(id, itemid);
                           },
                         ),
                       ],
@@ -178,9 +258,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 }).toList(),
                 ListTile(
                   title: ElevatedButton(
-                    child: Text("Add Item"),
+                    child: Text("Agregar Canción"),
                     onPressed: () {
-                      _addItemToList(index);
+                      _agregarCancion(id);
                     },
                   ),
                 ),
@@ -192,25 +272,25 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _showEditDialog(BuildContext context, int index) {
+  void _showEditMainListDialog(BuildContext context, int id) {
     final TextEditingController controller = TextEditingController();
-    controller.text = mainList[index].keys.first;
+    controller.text = mainList[id].keys.first;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Edit List"),
+          title: Text("Editar Lista"),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(labelText: 'List Name'),
+            decoration: InputDecoration(labelText: 'Nombre de la Lista'),
           ),
           actions: [
             ElevatedButton(
               onPressed: () {
-                _editList(index, controller.text);
+                _modificarAgrupacion(id, controller.text);
                 Navigator.of(context).pop();
               },
-              child: Text("Save"),
+              child: Text("Guardar"),
             ),
           ],
         );
@@ -218,25 +298,25 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _showEditItemDialog(BuildContext context, int index, int itemIndex) {
+  void _showEditSublistDialog(BuildContext context, int id, int itemid) {
     final TextEditingController controller = TextEditingController();
-    controller.text = mainList[index].values.first[itemIndex];
+    controller.text = mainList[id].values.first[itemid];
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Edit Item"),
+          title: Text("Editar lista"),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(labelText: 'Item'),
+            decoration: InputDecoration(labelText: 'Nombre de la lista'),
           ),
           actions: [
             ElevatedButton(
               onPressed: () {
-                _editItemInList(index, itemIndex, controller.text);
+                _editarCancion(id, itemid, controller.text);
                 Navigator.of(context).pop();
               },
-              child: Text("Save"),
+              child: Text("Guardar"),
             ),
           ],
         );
